@@ -41,8 +41,8 @@ jobs:
           key: ${{ secrets.KEY_TEST }}
           port: 22
           script: |
-            docker stop pi-zambon mysql-pi-zambon || true
-            docker rm --force pi-zambon mysql-pi-zambon || true
+            docker stop pi-zambon mysql-pi-zambon stocks || true
+            docker rm --force pi-zambon mysql-pi-zambon stocks || true
             
             docker network create pi-zambon-network || true
             
