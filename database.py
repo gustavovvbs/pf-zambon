@@ -3,22 +3,32 @@ from typing import Annotated
 from dotenv import load_dotenv
 from fastapi import Depends
 from sqlmodel import Session, SQLModel, create_engine
+from sqlalchemy.pool import StaticPool
 
 load_dotenv()
 
 engine = None
 
+if os.getenv("ENV") == "DEV":
+    sqlite_file = "database.db"
+    sqlite_url = f"sqlite:///{sqlite_file}"
+    engine = create_engine(
+        sqlite_url,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    SQLModel.metadata.create_all(engine)
+else:
+    DB_URL = os.getenv("DATABASE_URL")
+    if not DB_URL:
+        raise ValueError("DATABASE_URL environment variable is not set")
 
-DB_URL = os.getenv("DATABASE_URL")
-if not DB_URL:
-    raise ValueError("DATABASE_URL environment variable is not set")
-
-engine = create_engine(
-    DB_URL,
-    echo=True,
-    pool_pre_ping=True,
-    pool_recycle=300
-)
+    engine = create_engine(
+        DB_URL,
+        echo=True,
+        pool_pre_ping=True,
+        pool_recycle=300
+    )
 
 
 def create_db_and_tables():
@@ -27,7 +37,7 @@ def create_db_and_tables():
         SQLModel.metadata.create_all(engine)
     else:
         raise ValueError("Engine is not initialized")
-    
+
 
 def get_session():
     """ gets a database session"""
