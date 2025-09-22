@@ -13,4 +13,3 @@ pytest-cov
 pytest
 pymysql
 cryptography
-mysqlclient
