@@ -8,27 +8,17 @@ load_dotenv()
 
 engine = None
 
-ENV = "DEV"
 
-if ENV == "DEV":
-    sqlite_file = "database.db"
-    sqlite_url = f"sqlite:///{sqlite_file}"
+DB_URL = os.getenv("DATABASE_URL")
+if not DB_URL:
+    raise ValueError("DATABASE_URL environment variable is not set")
 
-    connect_args = {
-        "check_same_thread": False
-    }
-
-    engine = create_engine(
-        sqlite_url,
-        connect_args=connect_args,
-        echo=True
-    )
-elif ENV == "PROD":
-    DB_URL = os.getenv("DATABASE_URL")
-    engine = create_engine(
-        DB_URL,
-        echo=True
-    )
+engine = create_engine(
+    DB_URL,
+    echo=True,
+    pool_pre_ping=True,
+    pool_recycle=300
+)
 
 
 def create_db_and_tables():
@@ -36,7 +26,7 @@ def create_db_and_tables():
     if engine:
         SQLModel.metadata.create_all(engine)
     else:
-        raise ValueError("Engine is not initializaed")
+        raise ValueError("Engine is not initialized")
     
 
 def get_session():
