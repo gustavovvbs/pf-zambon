@@ -3,6 +3,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select
 from database import get_session
 from models import Movie
+from database import create_db_and_tables
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """ async context manager for lifespan events"""
+    #every code before the yield runs before the application starts
+    create_db_and_tables()
+    yield
 
 app = FastAPI()
 app.add_middleware(
@@ -12,6 +21,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get("/movies")
 def get_movies(session: Session = Depends(get_session)):
