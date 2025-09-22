@@ -8,3 +8,6 @@ pydantic
 bs4
 python-multipart
 PyJWT
+pyreadline3
+pytest-cov
+pytest

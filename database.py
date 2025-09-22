@@ -1,12 +1,49 @@
-from sqlmodel import SQLModel, create_engine
+import os
+from typing import Annotated
+from dotenv import load_dotenv
+from fastapi import Depends
+from sqlmodel import Session, SQLModel, create_engine
 
-# SQLite connection string
-sqlite_file_name = "library.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
+load_dotenv()
 
-# Create engine with SQL statement logging enabled
-engine = create_engine(sqlite_url, echo=True)
+engine = None
 
-# Function to create database tables from SQLModel classes
+ENV = "DEV"
+
+if ENV == "DEV":
+    sqlite_file = "database.db"
+    sqlite_url = f"sqlite:///{sqlite_file}"
+
+    connect_args = {
+        "check_same_thread": False
+    }
+
+    engine = create_engine(
+        sqlite_url,
+        connect_args=connect_args,
+        echo=True
+    )
+elif ENV == "PROD":
+    DB_URL = os.getenv("DATABASE_URL")
+    engine = create_engine(
+        DB_URL,
+        echo=True
+    )
+
+
 def create_db_and_tables():
-    SQLModel.metadata.create_all(engine)
+    """ Creates database and tables if they dont yet exist"""
+    if engine:
+        SQLModel.metadata.create_all(engine)
+    else:
+        raise ValueError("Engine is not initializaed")
+    
+
+def get_session():
+    """ gets a database session"""
+    if engine:
+        with Session(engine) as session:
+            yield session
+
+
+SessionDep = Annotated[Session, Depends(get_session)]
